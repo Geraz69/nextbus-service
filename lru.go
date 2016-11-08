@@ -56,7 +56,7 @@ func (cache InProcessCache) Set(key string, value interface{}) error {
 func (cache InProcessCache) Lock(key string) (int, error) {
 	lockId := rand.Int()
 	now := time.Now()
-	expiration := cache.ttlData.Nanoseconds() / 10
+	expiration := cache.ttlLock.Nanoseconds()
 	for taken := int64(0); taken < expiration; taken = time.Now().Sub(now).Nanoseconds() {
 		cache.mutex.Lock()
 		if existing, _ := cache.lock.Get(lru.Key(key)); existing == nil {

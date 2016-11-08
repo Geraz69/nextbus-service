@@ -1,14 +1,22 @@
 
 [service]
+# Port through which the api will be exposed
 port = 8080
 
 [cache]
+# Name of the cache provider
 provider = "lru"
-ttlData = "1m"
+# String representing the duration that the cached data will be kept before expiring
+ttlData = "30s"
+# String representing the time lapse for the validity of a lock.
+# When creating a lock in the cache it will be automatically be released after this much time has passed
 ttlLock = "5s"
+# For a reference on the duration formats please check https://golang.org/pkg/time/#ParseDuration
 
 [redis]
+# URL where the redis server can be reached when cache.provider is redis
 url = "localhost:6379"
 
 [lru]
+# Initial capacity for the in-memory cache when cache.provider is lru
 capacity = 1000
