@@ -8,16 +8,16 @@ RUN go get github.com/geraz69/nextbus
 RUN go get github.com/garyburd/redigo/redis
 
 # Copy our sources
-ADD ./nextbus /go/src/github.com/geraz69/nextbus-service/nextbus
+ADD . /go/src/github.com/geraz69/nextbus-service
 
 # Install api binary globally within container 
-RUN go install github.com/geraz69/nextbus-service/nextbus
+RUN go install github.com/geraz69/nextbus-service
 
 # Copy our config
-COPY ./config/nextbus/config.toml /etc/nextbus/config.toml
+COPY ./config/nextbus-service/config.toml /etc/nextbus-service/config.toml
 
 # Set binary as entrypoint
-ENTRYPOINT /go/bin/nextbus /etc/nextbus/config.toml
+ENTRYPOINT /go/bin/nextbus-service /etc/nextbus-service/config.toml
 
 # Expose default port (8080)
-EXPOSE 8080 
+EXPOSE 8080

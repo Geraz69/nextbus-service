@@ -8,27 +8,19 @@ services:
 
   nginx:
     image: nginx
-    container_name: nginx
     volumes:
         - ./config/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
         - "80:80"
 
   nextbus:
-    build:
-      context: ./
-      dockerfile: ./dockerfile-nextbus
+    build: ./
     networks:
       default:
         aliases:
            - backend
     ports:
       - "8080"
-    volumes:
-      - ./nextbus:/go/src/github.com/geraz69/nextbus-service/nextbus
-    depends_on:
-      - redis
 
   redis:
     image: gcr.io/google_containers/redis:e2e
-    container_name: redis
