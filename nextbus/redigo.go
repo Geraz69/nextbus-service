@@ -36,10 +36,10 @@ func NewRedisCache(url string, ttlData time.Duration, ttlLock time.Duration) Red
 
 func (cache RedisCache) Get(key string, v interface{}) (bool, error) {
 	conn, err := redis.Dial("tcp", cache.url)
-	defer conn.Close()
 	if err != nil {
 		return false, err
 	}
+	defer conn.Close()
 	b, err := redis.Bytes(conn.Do("GET", key))
 	if err != nil && err != redis.ErrNil {
 		return false, err
@@ -56,10 +56,10 @@ func (cache RedisCache) Set(key string, value interface{}) error {
 		panic("value shouldn't be nil")
 	}
 	conn, err := redis.Dial("tcp", cache.url)
-	defer conn.Close()
 	if err != nil {
 		return err
 	}
+	defer conn.Close()
 	b := bytes.NewBuffer(nil)
 	encoder := json.NewEncoder(b)
 	err = encoder.Encode(&value)
