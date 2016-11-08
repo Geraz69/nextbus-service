@@ -7,7 +7,7 @@ port = 8080
 # Name of the cache provider
 provider = "lru"
 # String representing the duration that the cached data will be kept before expiring
-ttlData = "30s"
+ttlData = "2m"
 # String representing the time lapse for the validity of a lock.
 # When creating a lock in the cache it will be automatically be released after this much time has passed
 ttlLock = "5s"

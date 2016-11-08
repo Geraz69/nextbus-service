@@ -3,7 +3,7 @@
 By [Gerardo Garcia Mendez](https://twitter.com/Geraz69).
 
 Simple [Go](https://golang.org/) wrapper for the [NextBus](http://www.nextbus.com/xmlFeedDocs/NextBusXMLFeed.pdf) public XML feed. It exposes a series of RESTful endpoints that translate to NextBus service commands, and has the following characteristics:
-* Queries to the NextBus feed are throttled so that the same command is never executed more than once with the same parameters before a configurable amount of time (defaults to 30 seconds, see configuration).
+* Queries to the NextBus feed are throttled so that the same command is never executed more than once with the same parameters before a configurable amount of time (defaults to 2 minutes, see configuration).
 * Responses are cached using one of two different providers: a Redis server or an in-process LRU cache.
 * The app is stateless, so you can create and destroy multiple instances without worrying about coordination. All coordination is done thru some pessimistic locking in the shared cache when the provider is Redis. Locks also expire after a configurable amount of time.
 * The app also exposes some API endpoints for statistics about the usage of the service.
@@ -61,8 +61,8 @@ Please open config.toml to see the available configurations and their defaults.
 * `/api/agencies/{agency}/routes/{route}/stops` Lists all the stops for a given route in an agency.
 * `/api/agencies/{agency}/routes/{route}/stops/{stop}` Shows the info for a stop based on a stop tag, given a route and an agency tags as well.
 * `/api/agencies/{agency}/routes/{route}/stops/{stop}/predictions` Retrieves the predictions related to a stop. Predictions are real time, so if the api end point is queried for a stop in a route that has finished its runs for the day then it will turn out as null (refer to NextBus docs for more details on predictions).
-* `/api/agencies/{agency}/routes/{route}/schedules` Retrieves the schedules of a route. Its a matrix consisting of the stops in a route and the different runs though that route. The intersection of those is the time at which a given run of the route will go by a given stop (route 81 and K_OWL of sf-muni agency are know to always fail due to malformed responses).
-* `/api/agencies/{agency}/routes/availability?time=<time>` Retrieves the general availability for all the routes in an agency for a given time during the day. The response is divided in three lists of route objects: available, unavailable and unknown. Available routes are the ones that will be performing runs at the specified time. Unavailable are the routes that have already finished or haven't started their runs for the day. Unknown are the routes that were queried but which response from the NextBus service wasn't successful, either because of data transfer rate limiting or because of malformed data in the response. The time parameter is optional and defaults to the current time. If specified it should follow the next format: `hh`, `hh:mm` or `hh:mm:ss`
+* `/api/agencies/{agency}/routes/{route}/schedules` Retrieves the schedules of a route. Its a matrix consisting of the stops in a route and the different runs though that route. The intersection of those is the time at which a given run of the route will go by a given stop (route 81X and K_OWL of sf-muni agency are know to always fail due to malformed responses).
+* `/api/agencies/{agency}/routes/availability?time=<time>` Retrieves the general availability for all the routes in an agency for a given time during the day. The response is divided in three lists of route objects: available, unavailable and unknown. Available routes are the ones that will be performing runs at the specified time. Unavailable are the routes that have already finished or haven't started their runs for the day. Unknown are the routes that were queried but which response from the NextBus service wasn't successful, either because of data transfer rate limiting or because of malformed data in the response. The time parameter is optional and defaults to the current time. If specified it should follow the next format: `hh`, `hh:mm` or `hh:mm:ss`. For this call most of the routes will fall under the unknown category if the cache has not been warmed (i.e. the first times the endpoint is called).
 * `/api/stats/hits` This endpoint provides a list of the exposed APIs endpoints (including itself) and the numbers of hits each one has received (number of calls in a single execution of the program)
 * `/api/stats/times` This endpoint provides a summary of the response time for each one of the calls made to all the endpoints, grouped by the logarithmic amount of time taken to fulfill the request.
 
@@ -78,7 +78,7 @@ $ brew install docker-compose
 ```
 To bootstrap docker compose you can run:
 ```bash
-$ docker-machine create --driver=virtualbox default
+$ docker-machine create --driver=virtualbox default #If not created before
 $ docker-machine start default
 $ eval $(docker-machine env default)
 ```
@@ -86,6 +86,8 @@ After docker machine is up and running you can run the program with:
 ```bash
 docker-compose build
 docker-compose up
+# Set the number of containers running the application
+docker-compose scale nextbus=3
 ```
 To hit the api endpoint you will need to hit the docker machine IP address in the port 8080. You can use `docker-machine env default` to get that information.
 
@@ -96,4 +98,4 @@ To hit the api endpoint you will need to hit the docker machine IP address in th
 * Add a redundant Redis setup (master/master or master/slave). Though that will involve upgrading the lock strategy to something like this: http://redis.io/topics/distlock
 * Do proper lower camel case in JSON responses.
 * Manage go dependencies in a more concise way.
-*
+* Make the times endpoint have a configurable logarithm base, as oposed to a hardcoded 10.
